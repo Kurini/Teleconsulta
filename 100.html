@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+
+	<title>Teleconsulta</title>
+	<link rel="shortcut icon" href="./img/icon.png">
+
+	<!-- Seção de scripts -->
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+	<!-- <script type="text/javascript" src="./dist/jquery.min.js"></script> -->
+	<script type="text/javascript" src="./dist/peer.js"></script>
+
+	<script>
+	    // Compatibility shim
+	    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+	    //cria um ID
+	   var id =100;
+
+	    // PeerJS object
+	    var peer = new Peer(id,{ host: 'server-alive.herokuapp.com', secure:true, port: 443, key: 'peerjs', debug: 3});
+	    console.log("index.html >> peer criado...");
+
+	    peer.on('open', function(){
+	    	console.log("index.html >> on open socket...");
+	    	$('#my-id').text(peer.id);
+
+	    	$('#step2, #step3').hide();
+		  	$('#step1').show();
+		  	console.log("index.html >> tela inicial configurada...");
+	    });
+
+	    // Receiving a call
+	    peer.on('call', function(call){
+	      // Answer the call automatically (instead of prompting user) for demo purposes
+	      call.answer(window.localStream);
+	      step3(call);
+	  	});
+	    peer.on('error', function(err){
+	    	alert(err.message);
+	      // Return to step 2 if error occurs
+	      step2();
+	  	});
+
+	    // Click handlers setup
+	    $(function(){
+	    	$('#make-call').click(function(){
+	        // Initiate a call!
+	        var call = peer.call($('#callto-id').val(), window.localStream);
+	        step3(call);
+	    });
+
+	    	$('#end-call').click(function(){
+	    		window.existingCall.close();
+	    		step2();
+	    	});
+
+	      // Retry if getUserMedia fails
+	      $('#step1-retry').click(function(){
+	      	$('#step1-error').hide();
+	      	step1();
+	      });
+
+	      // Get things started
+	      step1();
+	  });
+
+	    function step1 () {
+	      // Get audio/video stream
+	      navigator.getUserMedia({audio: true, video: true}, function(stream){
+	        // Set your video displays
+	        var video = document.createElement('video');
+	        video.muted = 'muted';
+	        //document.body.appendChild(video);
+	        video.srcObject=stream;
+	        
+
+	        $('#my-video').replaceWith(video);
+	        video.play();
+
+	        window.localStream = stream;
+	        step2();
+	    }, function(){ /*$('#step1-error').show();*/ });
+	  }
+
+	  function step2 () {
+	  	$('#step1, #step3').hide();
+	  	$('#step2').show();
+	  }
+
+	  function step3 (call) {
+	      // Hang up on an existing call if present
+	      if (window.existingCall) {
+	      	window.existingCall.close();
+	      }
+
+	      // Wait for stream on the call, then set peer video display
+	      call.on('stream', function(stream){
+	        //$('#their-video').prop('src', URL.createObjectURL(stream));
+	        var video = document.createElement('video');
+	        //document.body.appendChild(video);
+	        video.srcObject=stream;
+	        $('#their-video').replaceWith(video);
+	        video.play();
+	    });
+
+	      // UI stuff
+	      window.existingCall = call;
+	      //$('#their-id').text(call.peer);
+	      call.on('close', step2);
+	      $('#step1, #step2').hide();
+	      $('#step3').show();
+	  }
+
+	</script>
+
+	<!-- borda do vídeo -->
+	<style type="text/css">
+		video{
+		    width:400px;
+		    border-radius:10px;
+		}
+	</style>
+
+</head>
+<body>
+	<center class="p-3 mb-2">
+
+		<div id="step1">
+			<h2>Por favor, clique em "permitir" para que possamos acessar a câmera e o microfone.</h2>
+		</div>
+
+		<!-- Video area -->
+		<div class="pure-u-2-3" id="video-container">
+			<video id="their-video"></video>
+			<video id="my-video"></video>	
+		</div>
+
+		<div id="step3">
+			<!-- Botões -->
+			<div>
+				<p>
+					<button type="button" class="btn btn-danger" id="end-call">Finalizar Sessão</button>
+				</p>
+			</div>
+		</div>
+
+		<!-- dados sobre a chamada -->
+		<div id="step2">
+					<h4>Seu ID: <span id="my-id">...</span></h4>
+					<h5>Compartilhe este ID para que seja possível realizar a chamada!</h5>
+					<p>
+						<form class="form-group">
+							<div class="form-group ">
+								<input type="text" class="form-control" placeholder="ID do outro usuário..." id="callto-id" style="width: 90%">
+							</div>
+							<a href="#" class="btn btn-success" id="make-call">Chamar</a>
+						</form>
+					</p>
+		</div>
+
+	</center>
+</body>
+</html>
