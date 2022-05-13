@@ -21,7 +21,7 @@
 	    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
 	    //cria um ID
-	   var id =100;
+	   var id =101;
 
 	    // PeerJS object
 	    var peer = new Peer(id,{ host: 'server-alive.herokuapp.com', secure:true, port: 443, key: 'peerjs', debug: 3});
@@ -30,9 +30,7 @@
 	    peer.on('open', function(){
 	    	console.log("index.html >> on open socket...");
 	    	$('#my-id').text(peer.id);
-
 	    	$('#step2, #step3').hide();
-		  	$('#step1').show();
 		  	console.log("index.html >> tela inicial configurada...");
 	    });
 
@@ -90,7 +88,7 @@
 	  }
 
 	  function step2 () {
-	  	$('#step1, #step3').hide();
+	  	$('#step3').hide();
 	  	$('#step2').show();
 	  }
 
@@ -123,7 +121,7 @@
 	<!-- borda do vídeo -->
 	<style type="text/css">
 		video{
-		    width:400px;
+		    width:300px;
 		    border-radius:10px;
 		}
 	</style>
@@ -131,10 +129,6 @@
 </head>
 <body>
 	<center class="p-3 mb-2">
-
-		<div id="step1">
-			<h2>Por favor, clique em "permitir" para que possamos acessar a câmera e o microfone.</h2>
-		</div>
 
 		<!-- Video area -->
 		<div class="pure-u-2-3" id="video-container">
